@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": "static",
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "runrenderer",
+          "region": "asia-northeast1"
+        }
+      }
+    ]
+  }
+}

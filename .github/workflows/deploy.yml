@@ -1,0 +1,65 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GCP_PROJECT: 'tweetcollection'
+  SERVICE_NAME: 'runrenderer'
+  SERVICE_REGION: 'asia-northeast1'
+  IMAGE: gcr.io/tweetcollection/runrenderer:${{ github.sha }}
+
+jobs:
+  delivery:
+    name: Delivery
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: GCP Authenticate
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_email: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Configure docker to use the gcloud cli
+        run: gcloud auth configure-docker --quiet
+
+      - name: Build a docker image
+        run: docker build . -t $IMAGE
+
+      - name: Push the docker image
+        run: docker push $IMAGE
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image $IMAGE \
+            --project $GCP_PROJECT \
+            --region $SERVICE_REGION \
+            --set-env-vars=TZ=Asia/Tokyo \
+            --update-secrets=TWITTER_API=TWITTER_API:latest,TWITTER_API_SECRET=TWITTER_API_SECRET:latest \
+            --platform managed \
+            --allow-unauthenticated \
+            --quiet
+
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@v1.5.0
+        with:
+          args: deploy -P $GCP_PROJECT --force
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_BASE64 }}
+
