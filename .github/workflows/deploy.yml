@@ -6,10 +6,10 @@ on:
       - main
 
 env:
-  GCP_PROJECT: 'tweetcollection'
+  GCP_PROJECT: 'favocollection'
   SERVICE_NAME: 'runrenderer'
   SERVICE_REGION: 'asia-northeast1'
-  IMAGE: gcr.io/tweetcollection/runrenderer:${{ github.sha }}
+  IMAGE: gcr.io/favocollection/runrenderer:${{ github.sha }}
 
 jobs:
   delivery:
