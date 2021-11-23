@@ -8,6 +8,8 @@
     "nuxt3": "^3.0.0-27277498.850ef69"
   },
   "dependencies": {
+    "@google-cloud/datastore": "^6.6.2",
+    "crypto-js": "^4.1.1",
     "firebase": "^9.4.1",
     "firebase-admin": "^10.0.0",
     "twitter-api-client": "^1.4.0"
