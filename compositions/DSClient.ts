@@ -9,12 +9,12 @@ export class DSClinet {
     createUser() {
 
     }
-    getUser(uid:string) {
+    async getUser(uid:string) {
         const key = this.ds.key(['user',uid])
-        this.ds.get(key,(entity) => {
-            console.log('recive entity')
-            console.log(entity)
-        })
+        return await this.ds.get(key)
+            .then((entities) => {
+                return entities && entities[0] ? entities[0] : false;
+            })
     }
 }
 

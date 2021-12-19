@@ -4,8 +4,9 @@ import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { Cripto } from '~/class/Cripto'
 
-import { useDatastore } from '~/compositions/DSClient';
+import { useDatastore,DSClinet } from '~/compositions/DSClient';
 import { DSUser } from '~/class/models/DSUser';
+import url from 'url';
 
 /*
 import { useTwitter } from '~/compositions/TwitterClient'
@@ -22,6 +23,19 @@ import {
 //app.use('/test', () => 'Hello world!')
 
 export default async (req: IncomingMessage, res: ServerResponse) => {
+
+  //const queryObject = url.parse(req.url,true).query;
+  //console.log('query object',queryObject,req.url);
+
+  switch(req.method) {
+    case 'GET':
+      break;
+  }
+
+  if(req.verifyData) {
+    console.log('verifyData',req.verifyData)
+  }/**/
+
   res.statusCode = 200
 
   const body = await useBody(req)
@@ -34,42 +48,47 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
   console.log('here is server')
 
   //console.log(req.headers)
-  let authHeader = req.headers.authorization
+  /*let authHeader = req.headers.authorization
   if(req.headers.authorization && req.headers.authorization.indexOf('Bearer ') != -1) {
     const bearerToken = req.headers.authorization.slice(7)
-    console.log(bearerToken)
+    //console.log(bearerToken)
 
 
     if(getApps().length === 0) {
-      initializeApp({projectId:'favocollection'}/**/)
+      initializeApp({projectId:'favocollection'})
     }
     const auth = getAuth()
     const verifyData = await auth.verifyIdToken(bearerToken)
       .then((decodeToken) => {
-        //console.log(decodeToken)
         return decodeToken
-      })
+      })*/
 
-    console.log(verifyData);
-
+    //console.log(verifyData);
+  if(req.verifyData) {
     if(body.token && body.secret) {
-      const cripto = new Cripto();
-      console.log('token:'+ cripto.decrypt(body.token, verifyData.uid.slice(-10)))
-      console.log('secret:'+ cripto.decrypt(body.secret, verifyData.uid.slice(-10)))
+      //const cripto = new Cripto();
+      //console.log('token:'+ cripto.decrypt(body.token, verifyData.uid.slice(-10)))
+      //console.log('secret:'+ cripto.decrypt(body.secret, verifyData.uid.slice(-10)))
 
       const ds = useDatastore();
 
       const user = new DSUser(ds)
-      user.setKey(verifyData.uid)
+      user.setKey(req.verifyData.uid)
+      user.set(DSUser.TWITTER_ID, req.verifyData.firebase.identities['twitter.com'][0]);
       user.set(DSUser.TOKEN, body.token);
       user.set(DSUser.SECRET, body.secret);
       user.save();
   
-    }
-
-
-
+    } else {
+      //const dsc = new DSClinet();
+      //dsc.getUser('FwCXU6eRaYeqoawsGdYoxGzpcqm1')
+    }/**/
   }
+
+
+
+
+  //}
 
 
 

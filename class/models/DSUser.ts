@@ -4,6 +4,7 @@ import { DSEntityBase } from '~/class/models/DSEntityBase';
 export class DSUser extends DSEntityBase {
 
     static KIND:string = "user"
+    static TWITTER_ID:string = "twitterId"
 
     static TOKEN:string = "token"
     static SECRET:string = "secret"
