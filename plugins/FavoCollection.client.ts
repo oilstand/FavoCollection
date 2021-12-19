@@ -22,7 +22,7 @@ declare module '#app' {
 }
 
 //const ApiRoot = process.env.API_ROOT
-const ApiRoot = 'http://localhost:3000/api/'
+const ApiRoot = 'https://favocollection.web.app/api/'
 
 class FavoCollection extends EventEmitter {
   private firebase:any = null
