@@ -35,8 +35,13 @@
     </div>
     <div class="right-navigation">
       <div>
-        <ul class="sp_controller">
+        <ul 
+          v-on:touchstart.prevent="controllerTouchStart"
+          v-on:touchend.prevent="controllerTouchEnd"
+          v-on:touchmove.prevent="controllerTouchMove"
+          class="sp_controller">
           <li
+            v-on:touchmove="()=>{}"
             class="controller_button"
             v-for="(cat, idx) in category_list"
             :key="idx"
@@ -45,7 +50,10 @@
         </ul>
       </div>
     </div>
-    <div v-if="focusImgs.length>0" v-on:click="focusImgs=[]" class="overlay" v-on:wheel.prevent="">
+    <div v-if="focusImgs.length>0" v-on:click="focusImgs=[]"
+      class="overlay"
+      v-on:scroll.prevent=""
+      v-on:wheel.prevent="">
       <img :src="focusImgs[focusCursor].media_url_https">
       <button class="control prev_button" v-on:click.stop="focusCursor=(focusCursor-1+focusImgs.length)%focusImgs.length">◀</button>
       <button class="control next_button" v-on:click.stop="focusCursor=(focusCursor+1)%focusImgs.length">▶</button>
@@ -251,13 +259,64 @@ const category_list:object[] = ref([
 let favobuffer:object[] = [];
 let dispTweetNum:number = 5;
 
+const eventDebuger = (e) => {
+  console.log(e)
+}
+
+let touchInfo = {x:0,y:0,timestamp:0}
+const controllerTouchStart = (e) => {
+  touchInfo.x = e?.changedTouches[0]?.screenX;
+  touchInfo.y = e?.changedTouches[0]?.screenY;
+  touchInfo.timestamp = e?.timeStamp
+}
+const controllerTouchMove = (e) => {
+  let dx = e?.changedTouches[0]?.screenX - touchInfo.x;
+  let dy = e?.changedTouches[0]?.screenY - touchInfo.y;
+  let dr = Math.sqrt(dx*dx + dy*dy)
+  let porm = 1
+  if(dx < 0 || dy > 0)porm = -1
+
+  let deg = porm * dr / (2 * Math.PI * controllerR) * 360
+  let red = deg * Math.PI / 180;
+  offsetRadian+=red;
+  settingController();
+
+  touchInfo.x = e?.changedTouches[0]?.screenX;
+  touchInfo.y = e?.changedTouches[0]?.screenY;
+  touchInfo.timestamp = e?.timeStamp
+}
+const controllerTouchEnd = (e) => {
+  let dx = e?.changedTouches[0]?.screenX - touchInfo.x;
+  let dy = e?.changedTouches[0]?.screenY - touchInfo.y;
+  let dr = Math.sqrt(dx*dx + dy*dy)
+  let dt = e?.timeStamp - touchInfo.timestamp;
+  let speed = dr / dt * 1000;
+
+  let porm = 1
+  if(dx < 0 || dy > 0)porm = -1
+
+//  console.log(dr * porm)
+//  updateControllerPosition(dr * porm)
+  updateControllerPosition(speed * porm)
+}
+
+const controllerR = 120;
+let offsetRadian = 0;
+const updateControllerPosition = (speed) => {
+  let deg = (speed * 17 / 1000) / (2 * Math.PI * controllerR) * 360
+  let red = deg * Math.PI / 180;
+  offsetRadian+=red;
+  settingController();
+  if(Math.abs(speed) > 1)setTimeout(()=>updateControllerPosition(speed * 0.9), 17)
+}
+
 const settingController = () => {
   let elms = document.getElementsByClassName('controller_button');
   let deg = 360 / elms.length
   let red = deg * Math.PI / 180
   for(let i = 0; i < elms.length; i++) {
-    let x = Math.cos(red * i) * 120
-    let y = Math.sin(red * i) * 120
+    let x = Math.cos(red * i + offsetRadian) * controllerR
+    let y = Math.sin(red * i + offsetRadian) * controllerR
     elms[i].setAttribute('style','right:'+x+'px;bottom:'+y+'px;')
   }
 }
@@ -407,7 +466,7 @@ if(process.client) {
       }
     })
 
-    window.addEventListener('scroll',onScroll)
+    window.addEventListener('scroll',onScroll, {passive: true})
     settingController();
   }
   onMounted(onMountedAction);
