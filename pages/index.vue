@@ -8,7 +8,7 @@
       <NuxtLink to="/dummy">dummy</NuxtLink>
 
       <button v-on:click="tryshift">shift</button>
-      <ul class="list">
+      <ul class="list_menu">
         <li
           v-for="(cat, idx) in category_list"
           :key="idx"
@@ -36,9 +36,9 @@
     <div class="right-navigation">
       <div>
         <ul 
-          v-on:touchstart.prevent="controllerTouchStart"
-          v-on:touchend.prevent="controllerTouchEnd"
-          v-on:touchmove.prevent="controllerTouchMove"
+          v-on:touchstart.prevent="controller.controllerTouchStart"
+          v-on:touchend.prevent="controller.controllerTouchEnd"
+          v-on:touchmove.prevent="controller.controllerTouchMove"
           class="sp_controller">
           <li
             v-on:touchmove="()=>{}"
@@ -46,7 +46,14 @@
             v-for="(cat, idx) in category_list"
             :key="idx"
             v-on:click="tryshift"><button>{{cat.name}}</button></li>
-          <li><button v-on:click.stop="addCategoryList">add</button></li>
+          <li
+            v-on:touchstart.stop.prevent="controller.positionUpdate"
+            v-on:touchend.stop.prevent="controller.positionUpdate"
+            v-on:touchmove.stop.prevent="controller.positionUpdate"
+            class="controller_center">
+            <button
+              v-on:click.stop="addCategoryList">add</button>
+          </li>
         </ul>
       </div>
     </div>
@@ -75,11 +82,11 @@
   max-width:550px;
 }
 
-.list {
+.list_menu {
   list-style: none;
   padding:0;
 }
-.list button {
+.list_menu button {
   width:100%;
   display: block;
 }
@@ -134,28 +141,29 @@
   .right-navigation {
     order:1;
     position:fixed;
-    top:75%;left:0;
+    top:0;left:0;
     background-color:rgba(0,0,0,.4);
     /**height:60px;*/
   }
   .right-navigation div {
-    width:100%;
-    /*overflow-x:scroll;*/
+    position: relative;
+    /*width:100%;
+    overflow-x:scroll;*/
   }
-  .list {
+  .list_menu {
     width:100%;
     display:flex;
     overflow-x:scroll;
   }
-  .list li {
+  .list_menu li {
     width:25%;
     flex-shrink: 0;
   }
-  .list button {
-    border-radius:50%;
+  .list_menu button {
+    /*border-radius:50%;
     aspect-ratio: 1;
     border:none;
-    font-size:1.2em;
+    font-size:1.2em;*/
   }
   .overlay img {
     max-width:80%;
@@ -164,19 +172,24 @@
     width:10%;
   }
   .sp_controller {
-    position: relative;
+    position: absolute;
     list-style: none;
+    right: 0;
+    top:0;
     padding: 0;
     margin:0;
   }
   .sp_controller li {
     aspect-ratio: 1;
     
-    width:15%;
+    width:15vw;
     position:absolute;
-    right:0;
-    bottom:0;
-    /*transform: translate(-50%,-50%);*/
+    left:0;
+    top:0;
+    transform: translate(-50%,-50%);/**/
+  }
+  .sp_controller li.controller_center {
+    width:20vw;
   }
   .sp_controller button {
     width: 100%;
@@ -259,63 +272,115 @@ const eventDebuger = (e) => {
   console.log(e)
 }
 
-let touchInfo = {x:0,y:0,timestamp:0}
-const controllerTouchStart = (e) => {
-  touchInfo.x = e?.changedTouches[0]?.screenX;
-  touchInfo.y = e?.changedTouches[0]?.screenY;
-  touchInfo.timestamp = e?.timeStamp
-}
-const controllerTouchMove = (e) => {
-  let dx = e?.changedTouches[0]?.screenX - touchInfo.x;
-  let dy = e?.changedTouches[0]?.screenY - touchInfo.y;
-  let dr = Math.sqrt(dx*dx + dy*dy)
-  let porm = 1
-  if(dx < 0 || dy > 0)porm = -1
+type Position = {x:number, y:number};
+type TouchInfo = {pos:Position, timestamp:number}
+class RingController {
+  pos:Position;
+  touchInfo:TouchInfo;
+  offsetRadian:number = 0;
+  controllerR:number = 80;
+  speed:number = 0;
+  timeoutId:any = undefined;
+  element:object;
 
-  let deg = porm * dr / (2 * Math.PI * controllerR) * 360
-  let red = deg * Math.PI / 180;
-  offsetRadian+=red;
-  settingController();
+  constructor() {
+    this.pos = {x:0,y:0}
+    this.touchInfo = {pos:{x:0,y:0},timestamp:0}
+  }
+  initialize() {
+    this.element = document.getElementsByClassName('sp_controller')[0];
+    this.pos.y = Math.floor(window.innerHeight * 0.75)
+    this.pos.x = Math.floor(window.innerWidth * 0.9);
+    this.updatePosition();
+  }
+  updatePosition() {
+    this.element.setAttribute('style',`left:${this.pos.x}px;top:${this.pos.y}px;`)
+  }
+  positionUpdate(e) {
+    this.pos.x = e?.changedTouches[0]?.pageX ?? this.pos.x;
+    this.pos.y = e?.changedTouches[0]?.pageY - window.scrollY ?? this.pos.y;
+    this.updatePosition();
+  }
+  controllerTouchStart(e) {
+    this.touchInfo.pos.x = e?.changedTouches[0]?.pageX;
+    this.touchInfo.pos.y = e?.changedTouches[0]?.pageY;
+    this.touchInfo.timestamp = e?.timeStamp
+  }
+  getVector(x, y) {
+    let dx = x - this.touchInfo.pos.x;
+    let dy = y - this.touchInfo.pos.y;
+    let porm = 1
+    if((y - window.scrollY) > this.pos.y) {
+      if(x < this.pos.x) {
+        if(dx > 0 || dy > 0)porm = -1
+      } else {
+        if(dx > 0 || dy < 0)porm = -1
+      }
+    } else {
+      if(x < this.pos.x) {
+        if(dx < 0 || dy > 0)porm = -1
+      } else {
+        if(dx < 0 || dy < 0)porm = -1
+      }
+    }
+    return Math.sqrt(dx*dx + dy*dy) * porm;
+  }
+  controllerTouchMove(e) {
+    let vector = this.getVector(e?.changedTouches[0]?.pageX, e?.changedTouches[0]?.pageY)
 
-  touchInfo.x = e?.changedTouches[0]?.screenX;
-  touchInfo.y = e?.changedTouches[0]?.screenY;
-  touchInfo.timestamp = e?.timeStamp
-}
-const controllerTouchEnd = (e) => {
-  let dx = e?.changedTouches[0]?.screenX - touchInfo.x;
-  let dy = e?.changedTouches[0]?.screenY - touchInfo.y;
-  let dr = Math.sqrt(dx*dx + dy*dy)
-  let dt = e?.timeStamp - touchInfo.timestamp;
-  let speed = dr / dt * 1000;
+    /*let deg = vector / (2 * Math.PI * this.controllerR) * 360
+    let red = deg * Math.PI / 180;
+    this.offsetRadian+=red;
+    this.settingController();
 
-  let porm = 1
-  if(dx < 0 || dy > 0)porm = -1
+    */
+    let dt = e?.timeStamp - this.touchInfo.timestamp;
+    let speed = vector / dt * 500;
 
-//  console.log(dr * porm)
-//  updateControllerPosition(dr * porm)
-  updateControllerPosition(speed * porm)
-}
+    this.speed = Math.abs(speed) > Math.abs(this.speed) || speed * this.speed < 0 ? speed : this.speed;
+    this.setMoveAnimation()
 
-const controllerR = 80;
-let offsetRadian = 0;
-const updateControllerPosition = (speed) => {
-  let deg = (speed * 17 / 1000) / (2 * Math.PI * controllerR) * 360
-  let red = deg * Math.PI / 180;
-  offsetRadian+=red;
-  settingController();
-  if(Math.abs(speed) > 1)setTimeout(()=>updateControllerPosition(speed * 0.9), 17)
-}
+    this.controllerTouchStart(e)
+  }
+  controllerTouchEnd(e) {
+    let vector = this.getVector(e?.changedTouches[0]?.pageX, e?.changedTouches[0]?.pageY)
+    let dt = e?.timeStamp - this.touchInfo.timestamp;
+    let speed = vector / dt * 1000;
 
-const settingController = () => {
-  let elms = document.getElementsByClassName('controller_button');
-  let deg = 360 / elms.length
-  let red = deg * Math.PI / 180
-  for(let i = 0; i < elms.length; i++) {
-    let x = Math.cos(red * i + offsetRadian) * controllerR
-    let y = Math.sin(red * i + offsetRadian) * controllerR
-    elms[i].setAttribute('style','right:'+x+'px;bottom:'+y+'px;')
+    this.speed = speed;
+    this.setMoveAnimation()
+  }
+  setMoveAnimation() {
+    if(!this.timeoutId) {
+      this.timeoutId = setTimeout(()=>this.updateControllerPosition(), 17)
+    }
+  }
+  updateControllerPosition() {
+    let deg = (this.speed * 17 / 1000) / (2 * Math.PI * this.controllerR) * 360
+    let red = deg * Math.PI / 180;
+    this.offsetRadian+=red;
+    this.settingController();
+
+    this.speed *= 0.9;
+    if(Math.abs(this.speed) > 1) {
+      this.timeoutId = setTimeout(()=>this.updateControllerPosition(), 17)
+    } else {
+      this.timeoutId = undefined
+    }
+  }
+  settingController() {
+    let elms = document.getElementsByClassName('controller_button');
+    let deg = 360 / elms.length
+    let red = deg * Math.PI / 180
+    for(let i = 0; i < elms.length; i++) {
+      let x = Math.cos(red * i + this.offsetRadian) * this.controllerR
+      let y = Math.sin(red * i + this.offsetRadian) * this.controllerR
+      elms[i].setAttribute('style','left:'+x+'px;top:'+y+'px;')
+    }
   }
 }
+const controller = new RingController();
+
 
 const twitterWidgetLoad = () => {
     if(!window.twttr) {
@@ -459,11 +524,14 @@ if(process.client) {
       if(data.result == 'ok') {
         favobuffer = data.data
         setDisplayTweet()
+        onScroll()
       }
     })
 
     window.addEventListener('scroll',onScroll, {passive: true})
-    settingController();
+    controller.initialize();
+    controller.settingController();
+    
   }
   onMounted(onMountedAction);
 }
