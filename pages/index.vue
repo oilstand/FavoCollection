@@ -134,7 +134,7 @@
   .right-navigation {
     order:1;
     position:fixed;
-    bottom:0;left:0;
+    top:75%;left:0;
     background-color:rgba(0,0,0,.4);
     /**height:60px;*/
   }
@@ -242,18 +242,14 @@ const focusImgs:object[] = ref([])
 const focusCursor:number = ref(0)
 const debugNumA:number = ref(0)
 const category_list:object[] = ref([
-  {name:"イラスト"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
-  {name:"スキップ"},
+  {name:"ジャンル1"},
+  {name:"ジャンル2"},
+  {name:"ジャンル3"},
+  {name:"ジャンル4"},
+  {name:"ジャンル5"},
+  {name:"ジャンル6"},
+  {name:"ジャンル7"},
+  {name:"ジャンル8"},
 ])
 
 let favobuffer:object[] = [];
@@ -300,7 +296,7 @@ const controllerTouchEnd = (e) => {
   updateControllerPosition(speed * porm)
 }
 
-const controllerR = 120;
+const controllerR = 80;
 let offsetRadian = 0;
 const updateControllerPosition = (speed) => {
   let deg = (speed * 17 / 1000) / (2 * Math.PI * controllerR) * 360
