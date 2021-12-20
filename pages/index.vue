@@ -36,9 +36,9 @@
     <div class="right-navigation">
       <div>
         <ul 
-          v-on:touchstart.prevent="controller.controllerTouchStart"
-          v-on:touchend.prevent="controller.controllerTouchEnd"
-          v-on:touchmove.prevent="controller.controllerTouchMove"
+          v-on:touchstart.stop="controller.controllerTouchStart"
+          v-on:touchend.stop="controller.controllerTouchEnd"
+          v-on:touchmove.stop="controller.controllerTouchMove"
           class="sp_controller">
           <li
             v-on:touchmove="()=>{}"
