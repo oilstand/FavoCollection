@@ -1,23 +1,26 @@
 import { Datastore } from '@google-cloud/datastore'
+import { DSClinet } from '~/class/DSClient';
 import { DSEntityBase } from '~/class/models/DSEntityBase';
 
 export class DSTweet extends DSEntityBase {
 
-    static KIND:string = "tweet"
+    get kind() {
+        return "tweet"
+    }
+
     //static TWITTER_ID:string = "twitterId"
 
     static HTML:string = "html"
     //static SECRET:string = "secret"
 
-    constructor(ds:Datastore, key:string, data?:object) {
-        super(ds);
-        this.setKey(key)
-
-        this.kind = DSTweet.KIND;
-
-        this.noIndex = [
+    get noIndex() {
+        return [
             DSTweet.HTML,
-            //DSTweet.SECRET,
         ]
+    }
+
+    constructor(dsc?:DSClinet, data?:object, key?:string) {
+        super(dsc, data)
+        this.setKey(key)
     }
 }

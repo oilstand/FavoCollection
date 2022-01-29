@@ -1,9 +1,9 @@
 <template>
   <div class="main-body">
     <header>
-      <h1>FavoCollection</h1>
+      <h1>Favo</h1>
       <div class="uinfo">
-        <h3>ログインテスト</h3>
+        <p><NuxtLink to="/top">top</NuxtLink><NuxtLink to="/">index</NuxtLink></p>
         <p v-if="isLogin">ログイン中！<button v-on:click="nuxtApp.$favo.signout">ログアウト</button></p>
         <p v-else>ログアウト中<button v-on:click="nuxtApp.$favo.signin">ログイン</button></p>
       </div>
@@ -32,14 +32,15 @@ header .uinfo {
   display:flex;
 }
 .uinfo p {
-  padding:0 16px;
+  padding:0;
+  margin:0;
 }
 </style>
 <script setup lang="ts">
 console.log("layout")
-
 import { useNuxtApp } from '#app'
 import { NuxtAppType } from '~/class/types/NuxtAppType'
+
 const nuxtApp:NuxtAppType = useNuxtApp()
 
 const isLogin = ref(false);
@@ -60,7 +61,8 @@ if(process.client) {
 
   nuxtApp.$favo.initFbEvents()
 }
-
+/*
+*/
 </script>
 <script lang="ts">
 export default {
@@ -70,7 +72,7 @@ export default {
     },
     head: {
         title: 'Nuxt3 default',
-        script: []
+        script: [],
     }
 }
 </script>

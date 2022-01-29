@@ -4,7 +4,7 @@ import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { Cripto } from '~/class/Cripto'
 
-import { useDatastore,DSClinet } from '~/compositions/DSClient';
+import { useDatastore,DSClinet } from '~/class/DSClient';
 import { DSUser } from '~/class/models/DSUser';
 import { useTwitter } from '~/class/TwitterClient'
 //import { TwitterClient } from 'twitter-api-client';
@@ -48,4 +48,4 @@ export default (req: IncomingMessage, res: ServerResponse) => {
       .then(favos=>{
         return {result:'ok',data:favos}
       })
-}
+}/** */

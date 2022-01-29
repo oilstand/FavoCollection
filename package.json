@@ -5,6 +5,7 @@
     "start": "node .output/server/index.mjs"
   },
   "devDependencies": {
+    "node-sass": "^7.0.0",
     "nuxt3": "^3.0.0-27277498.850ef69"
   },
   "dependencies": {
@@ -12,6 +13,7 @@
     "crypto-js": "^4.1.1",
     "firebase": "^9.4.1",
     "firebase-admin": "^10.0.0",
+    "three-dots": "^0.2.3",
     "twitter-api-client": "^1.4.0",
     "twitter-api-v2": "^1.7.2"
   }

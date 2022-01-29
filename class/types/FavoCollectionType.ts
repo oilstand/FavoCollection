@@ -1,6 +1,7 @@
 export const enum METHOD_TYPE {
     GET = "GET",
     POST = "POST",
+    GET_STREAM = "GET_STREAM",
 }
 export type APICALLBACK = (result:object|boolean)=>void;
 

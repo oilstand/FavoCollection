@@ -4,4 +4,4 @@ export default async () => {
   counter++
   await wait(5000)
   return JSON.stringify(counter)
-}
+}/** */
