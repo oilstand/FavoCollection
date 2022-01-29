@@ -37,4 +37,4 @@ export default async (req, res) => {
 
         req.verifyData = verifyData;
     }
-}
+}/** */

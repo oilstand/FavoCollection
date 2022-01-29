@@ -15,13 +15,16 @@ export class ApiClient {
         this.headers = headers
     }
     request(method:string, endpoint:string, body?:BodyInit) {
+        let params = {
+            method,
+            headers: this.headers,
+        }
+
+        if(body)params['body'] = JSON.stringify(body)
+
         return fetch(
             this.apiRoute+endpoint,
-            {
-                method,
-                headers: this.headers,
-                body:JSON.stringify(body)
-            }
+            params
         )
     }
 }

@@ -145,6 +145,9 @@ class FavoCollection extends EventEmitter {
         this.postRequest(task.url, task.data??{})
           .then(task.callback)
         break;
+      case METHOD_TYPE.GET_STREAM:
+        this.getStream(task.url, task.data, task.callback)
+        break;
     }
   }
 
@@ -156,9 +159,17 @@ class FavoCollection extends EventEmitter {
     }
   }
 
+  _preCheckRequest() {
+    if(!this.user) {
+      alert('user notfound')
+      return false;
+    }
+    if(!this.api)this.initApi()
+    return true
+  }
+
   postRequest(endpoint:string, data:object) {
-    if(!this.user)alert('user notfound');
-    if(!this.api)this.initApi();
+    if(!this._preCheckRequest())return false
 
     this.api.setHeaders(this.postHeader)
     return this.api.request(
@@ -174,8 +185,7 @@ class FavoCollection extends EventEmitter {
   }
 
   getRequest(endpoint:string, data:any|boolean = false) {
-    if(!this.user)alert('user notfound');
-    if(!this.api)this.initApi();
+    if(!this._preCheckRequest())return false
 
     const query_params = data ? '?' +(new URLSearchParams(data)) : ''; 
     this.api.setHeaders(this.getHeader)
@@ -187,6 +197,51 @@ class FavoCollection extends EventEmitter {
     .catch((error) => {
       console.error('Error:', error);
     });
+    
+  }
+
+  getStream(endpoint:string, data:any|boolean = false, cb:(value:object)=>void) {
+    if(!this._preCheckRequest())return false
+
+    const query_params = data ? '?' +(new URLSearchParams(data)) : '';
+
+    let reqHeader:HeadersInit = {
+      'Authorization': 'Bearer ' + this.token
+    }
+    this.api.setHeaders(reqHeader)
+    return this.api.request(
+      'GET',
+      endpoint+query_params
+    )
+    .then(response => {
+      const reader = response.body.getReader();
+
+      return new ReadableStream({
+          start(controller) {
+              const pump = ()=>{
+                  return reader.read().then(({ done, value }) => {
+
+                  // データを消費する必要がなくなったら、ストリームを閉じます
+                  cb({value,done})
+                  /*console.log("value",value)
+                  console.log("2str",String.fromCharCode(value[0]))
+                  for(let val of value) {
+                    console.log("val",val,String.fromCharCode(val))
+                  }*/
+                  if (done) {
+                      controller.close();
+                      return;
+                  }
+                  // 次のデータチャンクを対象のストリームのキューに入れます
+                  controller.enqueue(value);
+                  return pump();
+                  });
+              }
+              return pump();
+          }
+      })
+  })
+
     
   }
 
